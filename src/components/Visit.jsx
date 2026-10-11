@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { booking, clinic, emergency, hours, links, onlineHours } from '../content.js'
 import { clinicNow, fmtRange } from '../lib/time.js'
 import { Icon, Reveal, SplitWords, contactHref, prettyPhone } from './ui.jsx'
+import SlotBooking from './SlotBooking.jsx'
 
 function nextDays(n = 7) {
   const now = new Date()
@@ -27,11 +28,14 @@ export function cleanPhone(raw) {
   return /^[6-9]\d{9}$/.test(d) ? d : null
 }
 
-function BookingForm() {
+function LegacyForm() {
   const days = useMemo(() => nextDays(7), [])
   const [type, setType] = useState(booking.types[0].key)
   const [mode, setMode] = useState('clinic')
-  const [dayIdx, setDayIdx] = useState(0)
+  const nowM = clinicNow().minutes
+  // a day is bookable if at least one of its sessions is still ahead (today's finished ones don't count)
+  const dayOpen = (i, m) => (m === 'online' ? [onlineHours] : hours[days[i].dow].sessions).some((r) => !(i === 0 && nowM >= r[1] - 30))
+  const [dayIdx, setDayIdx] = useState(() => Math.max(0, days.findIndex((_, i) => dayOpen(i, 'clinic'))))
   const [session, setSession] = useState(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -40,6 +44,15 @@ function BookingForm() {
   const [errors, setErrors] = useState({})
   const [state, setState] = useState('idle') // idle | sending | sent | failed
   const [copied, setCopied] = useState(false)
+
+  // switching to Online after 1 pm: hop to the next day that still has an online session
+  useEffect(() => {
+    if (!dayOpen(dayIdx, mode)) {
+      const i = days.findIndex((_, k) => dayOpen(k, mode))
+      if (i >= 0) setDayIdx(i)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode])
 
   const d = days[dayIdx]
   const nowMin = clinicNow().minutes
@@ -230,12 +243,12 @@ function BookingForm() {
       <div className="fields">
         <label className="field">
           <span>Your name</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="Full name" aria-invalid={!!errors.name} aria-describedby={errors.name ? 'e-name' : undefined} />
+          <input value={name} onChange={(e) => { setName(e.target.value); setErrors((x) => ({ ...x, name: undefined })) }} autoComplete="name" placeholder="Full name" aria-invalid={!!errors.name} aria-describedby={errors.name ? 'e-name' : undefined} />
           {errors.name && <em className="err" id="e-name" role="alert">{errors.name}</em>}
         </label>
         <label className="field">
           <span>Mobile number</span>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" inputMode="tel" autoComplete="tel" placeholder="98765 43210" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'e-phone' : undefined} />
+          <input value={phone} onChange={(e) => { setPhone(e.target.value); setErrors((x) => ({ ...x, phone: undefined })) }} type="tel" inputMode="tel" autoComplete="tel" placeholder="98765 43210" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? 'e-phone' : undefined} />
           {errors.phone && <em className="err" id="e-phone" role="alert">{errors.phone}</em>}
         </label>
         <label className="field">
@@ -266,6 +279,16 @@ function BookingForm() {
   )
 }
 
+// Live calendar booking when the clinic's booking service is switched on, else the simple request form.
+function Booking() {
+  const [cfg, setCfg] = useState(undefined)
+  useEffect(() => {
+    fetch('/api/public/config').then((r) => (r.ok ? r.json() : null)).then((j) => setCfg(j && j.enabled ? j : null)).catch(() => setCfg(null))
+  }, [])
+  if (cfg === undefined) return <div className="book skel-card" aria-busy="true" aria-label="Loading booking" />
+  return cfg ? <SlotBooking cfg={cfg} /> : <LegacyForm />
+}
+
 export default function Visit() {
   return (
     <section className="visit section" id="visit">
@@ -278,7 +301,7 @@ export default function Visit() {
         </div>
         <div className="visit-grid">
           <Reveal>
-            <BookingForm />
+            <Booking />
           </Reveal>
           <Reveal className="visit-side" delay={0.1}>
             <div className="map">

@@ -35,23 +35,26 @@ npm run build      # production build in dist/
 2. Vercel detects Vite. Leave the build settings as they are (Root Directory stays empty) and deploy.
 3. Add the clinic’s domain under Settings → Domains.
 
-## Booking setup
+## Booking and the Desk app
 
-The **Book an appointment** form collects visit type (first consultation, follow-up, counselling &
-therapy), in clinic or online, day, session, name and a validated Indian mobile number. It has a hidden
-spam trap and always says the slot is a *request* until the clinic replies. It picks the best route that
-is switched on, in this order:
+Booking has two modes, chosen automatically:
 
-1. **Email form** (`VITE_BOOKING_ENDPOINT`): requests are POSTed as JSON to a [Formspree](https://formspree.io)-style
-   endpoint and arrive in the clinic's inbox; the patient sees a confirmation screen. Free tier is enough.
-2. **WhatsApp** (`VITE_CLINIC_WHATSAPP`): opens WhatsApp to the clinic with the request already written.
-3. **Fallback**: copies the request and opens the clinic's Google listing.
+- **Live booking (recommended)**: patients pick a real free time; Dr. Anamika confirms from **Avighna Desk** (`/desk`),
+  a private page she saves to her iPhone home screen (Face ID sign-in, alerts, one-tap pre-written replies).
+  Needs the free database and a passphrase: see **[SETUP.md](SETUP.md)**.
+- **Simple request form (fallback)**: used until live booking is switched on, or if it is ever down. It sends the
+  request by email form (`VITE_BOOKING_ENDPOINT`), WhatsApp (`VITE_CLINIC_WHATSAPP`) or the Google listing.
 
-Optionally add `VITE_SCHEDULE_URL` (a Google Calendar *appointment schedule* or Cal.com page) to show a
-"See live availability" button above the form for patients who prefer to pick an exact slot.
-
-Set these as **Environment Variables in Vercel** (Settings → Environment Variables), then redeploy. See
-`.env.example` for the full list. Nothing is hard-coded and nothing breaks if they are empty.
+```
+shared/schedule.js     clinic hours + slot rules, used by the site, the API and the Desk
+api/public/[action].js public booking API (slots, book, status, cancel, .ics)
+api/desk/[action].js   the doctor's API (passphrase / Face ID, requests, calendar, time off, settings, alerts)
+api/_lib/              storage (Upstash Redis or a local file), booking engine with anti-double-booking locks
+src/desk/              the Desk app
+src/components/SlotBooking.jsx, MyBooking.jsx   the website side
+dev-server.mjs         local stand-in for the API (npm run api)
+test/                  backend, Desk and website tests
+```
 
 ## Fill these in before going live
 

@@ -1,3 +1,5 @@
+import { ONLINE, WEEK } from '../shared/schedule.js'
+
 // Everything a non-developer would want to change lives in this file.
 // Empty strings hide the thing they belong to, so nothing fake ever shows.
 
@@ -56,19 +58,10 @@ export const booking = {
   ],
 }
 
-// Minutes after midnight, clinic local time. Index 0 = Sunday (matches Date#getDay).
-const morning = [600, 840] // 10:00 – 14:00
-const evening = [1050, 1200] // 17:30 – 20:00
-export const hours = [
-  { day: 'Sunday', short: 'Sun', sessions: [morning, [1050, 1230]] }, // evening until 8:30 pm
-  { day: 'Monday', short: 'Mon', sessions: [morning, evening] },
-  { day: 'Tuesday', short: 'Tue', sessions: [morning, evening] },
-  { day: 'Wednesday', short: 'Wed', sessions: [morning, evening] },
-  { day: 'Thursday', short: 'Thu', sessions: [morning, evening] },
-  { day: 'Friday', short: 'Fri', sessions: [morning, evening] },
-  { day: 'Saturday', short: 'Sat', sessions: [morning, evening] },
-]
-export const onlineHours = [540, 780] // 9:00 – 13:00
+const DAY_NAMES = [['Sunday', 'Sun'], ['Monday', 'Mon'], ['Tuesday', 'Tue'], ['Wednesday', 'Wed'], ['Thursday', 'Thu'], ['Friday', 'Fri'], ['Saturday', 'Sat']]
+// Hours live in shared/schedule.js so the website, the booking API and the Desk app always agree.
+export const hours = WEEK.map((sessions, i) => ({ day: DAY_NAMES[i][0], short: DAY_NAMES[i][1], sessions }))
+export const onlineHours = ONLINE
 
 export const conditions = [
   'Skin & eczema',
