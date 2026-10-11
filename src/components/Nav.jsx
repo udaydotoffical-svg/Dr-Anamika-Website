@@ -37,10 +37,10 @@ export default function Nav() {
     <>
       <header className={`nav ${scrolled ? 'is-scrolled' : ''}`}>
         <a href="#top" className="brand" aria-label="Avighna Classical Homeopathy, home">
-          <Logo />
+          <Logo ring />
           <span className="brand-text">
             <span className="brand-name">Avighna</span>
-            <span className="brand-sub">Classical Homeopathy</span>
+            <span className="brand-sub">Homeopathic Clinic</span>
           </span>
         </a>
         <nav className="nav-links" aria-label="Main">

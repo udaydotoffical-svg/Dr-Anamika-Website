@@ -13,8 +13,9 @@ Palette: `#086288` deep · `#4D8DBA` mid · `#97D7FF` sky · `#FFEFC4` cream (to
 ```
 src/content.js          ALL text, hours, phone, links. Edit this file, not the components.
 src/App.jsx             section order, smooth scroll
-src/components/         one file per section (Hero, Principles, Story, Care, Doctor, Hours, Reviews, Faq, Visit, Footer)
+src/components/         one file per section (Hero, Trust, Principles, Services, Story, Care, Doctor, Hours, Reviews, Faq, Visit, Footer)
 src/three/HeroScene.jsx hero: open vial of white pills, floating cap, drifting globules
+src/components/Logo.jsx the clinic emblem (stethoscope V + winged caduceus); paths in src/lib/logo.js
 src/three/StoryScene.jsx "Your first visit": globules re-form for each step (many symptoms → whole picture → one remedy → follow-ups)
 src/lib/time.js         live open/closed status in clinic time (IST), whatever timezone the visitor is in
 src/styles.css          design tokens at the top, then one block per section
@@ -34,24 +35,37 @@ npm run build      # production build in dist/
 2. Vercel detects Vite. Leave the build settings as they are (Root Directory stays empty) and deploy.
 3. Add the clinic’s domain under Settings → Domains.
 
+## Booking setup
+
+The **Book an appointment** form collects visit type (first consultation, follow-up, counselling &
+therapy), in clinic or online, day, session, name and a validated Indian mobile number. It has a hidden
+spam trap and always says the slot is a *request* until the clinic replies. It picks the best route that
+is switched on, in this order:
+
+1. **Email form** (`VITE_BOOKING_ENDPOINT`): requests are POSTed as JSON to a [Formspree](https://formspree.io)-style
+   endpoint and arrive in the clinic's inbox; the patient sees a confirmation screen. Free tier is enough.
+2. **WhatsApp** (`VITE_CLINIC_WHATSAPP`): opens WhatsApp to the clinic with the request already written.
+3. **Fallback**: copies the request and opens the clinic's Google listing.
+
+Optionally add `VITE_SCHEDULE_URL` (a Google Calendar *appointment schedule* or Cal.com page) to show a
+"See live availability" button above the form for patients who prefer to pick an exact slot.
+
+Set these as **Environment Variables in Vercel** (Settings → Environment Variables), then redeploy. See
+`.env.example` for the full list. Nothing is hard-coded and nothing breaks if they are empty.
+
 ## Fill these in before going live
 
-All in `src/content.js`. Anything left empty is hidden or falls back gracefully, so nothing fake shows.
-
-| What | Field | If empty |
+| What | Where | If empty |
 |---|---|---|
-| Clinic phone | `clinic.phone` (e.g. `'919876543210'`) | “Call” buttons open the Google listing, which has the number |
-| WhatsApp number | `clinic.whatsapp` | Booking form copies the request and opens the Google listing |
-| Dr. Anamika’s photo | put the file in `public/`, set `clinic.doctorPhoto: '/dr-anamika.jpg'` | a botanical illustration shows instead |
-| Qualifications | `clinic.qualifications` (e.g. `'BHMS'`) | not shown |
-| Patient reviews | `testimonials` (real Google reviews, with permission) | only the 5.0 ★ / 21 reviews card shows |
+| Clinic phone / WhatsApp | `VITE_CLINIC_PHONE`, `VITE_CLINIC_WHATSAPP` (Vercel env vars) | Call / book buttons open the Google listing |
+| Booking inbox | `VITE_BOOKING_ENDPOINT` | WhatsApp or Google fallback (see above) |
+| Dr. Anamika's photo | put the file in `public/`, set `clinic.doctorPhoto: '/dr-anamika.jpg'` in `src/content.js` | the clinic emblem shows instead |
+| Patient reviews | `testimonials` in `src/content.js` (real Google reviews, with permission) | only the 5.0 ★ / 21 reviews card shows |
 | Rating / count | `clinic.rating`, `clinic.reviewCount` | update when Google changes |
+| Services, conditions, FAQ wording | `services`, `care`, `conditions`, `faqs` in `src/content.js` | have the doctor read them once |
 
-Also check the conditions listed under **Care** (`care`, `conditions`) match what the doctor actually treats.
-
-With a WhatsApp number set, the **Request a consultation** form opens WhatsApp with a ready message
-(name, day, session, concern). Hours, today’s row, “Open now / Closed · opens 5:30 pm” and the
-“Over for today” slots all come from `hours` in the same file.
+Credentials shown on the site (B.H.M.S., Reg. No. 6745) come from the clinic's own signboard.
+Emergency numbers: **112** is India's national emergency number, **108** is Gujarat's free ambulance service.
 
 ## Performance and accessibility
 

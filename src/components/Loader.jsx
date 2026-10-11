@@ -1,13 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import Logo from './Logo.jsx'
 
 // Short intro that waits for the 3D scene (never longer than ~3 s).
 export default function Loader({ ready }) {
   const [minDone, setMinDone] = useState(false)
   const [maxDone, setMaxDone] = useState(false)
   const [pct, setPct] = useState(0)
+  const [fonts, setFonts] = useState(false)
   const readyRef = useRef(ready)
   readyRef.current = ready
+
+  useEffect(() => {
+    const f = document.fonts?.load
+      ? Promise.all([
+          document.fonts.load('400 40px "Fraunces Variable"'),
+          document.fonts.load('italic 400 40px "Fraunces Variable"'),
+          document.fonts.load('500 16px "Manrope Variable"'),
+        ])
+      : Promise.resolve()
+    f.catch(() => {}).then(() => setFonts(true))
+  }, [])
 
   useEffect(() => {
     const a = setTimeout(() => setMinDone(true), 1300)
@@ -28,7 +41,7 @@ export default function Loader({ ready }) {
     }
   }, [])
 
-  const show = !((ready && minDone) || maxDone)
+  const show = !((ready && minDone && fonts) || maxDone)
 
   useEffect(() => {
     document.documentElement.classList.toggle('is-loading', show)
@@ -44,26 +57,9 @@ export default function Loader({ ready }) {
           aria-hidden="true"
         >
           <div className="loader-inner">
-            <svg viewBox="0 0 40 40" className="loader-mark">
-              <motion.path
-                d="M8 32C8 18 18 8 32 8C32 22 22 32 8 32Z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.9"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1.2, ease: 'easeInOut' }}
-              />
-              <motion.circle
-                cx="21.2"
-                cy="19"
-                r="3"
-                fill="var(--sky)"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.8, type: 'spring', stiffness: 260, damping: 14 }}
-              />
-            </svg>
+            <motion.div initial={{ opacity: 0, scale: 0.8, rotate: -8 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}>
+              <Logo ring className="loader-mark" />
+            </motion.div>
             <motion.div
               className="loader-word"
               initial={{ opacity: 0, y: 10 }}

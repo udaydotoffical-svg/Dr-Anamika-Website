@@ -9,12 +9,14 @@ export const clinic = {
   name,
   shortName: 'Avighna',
   doctor: 'Dr. Anamika',
-  // e.g. 'BHMS' or 'BHMS, MD (Hom.)'. Left empty until confirmed.
-  qualifications: '',
+  doctorFull: 'Dr. Anamika Singh',
+  qualifications: 'B.H.M.S.',
+  regNo: '6745',
+  tagline: 'For effective, gentle and safe treatment',
   // Phone in international format without spaces or +, e.g. '919876543210'.
   // Empty = Call / WhatsApp buttons fall back to the Google listing.
-  phone: '',
-  whatsapp: '',
+  phone: import.meta.env.VITE_CLINIC_PHONE || '',
+  whatsapp: import.meta.env.VITE_CLINIC_WHATSAPP || '',
   email: '',
   // Drop a real photo in /public (e.g. /dr-anamika.jpg) and put its path here.
   doctorPhoto: '',
@@ -35,6 +37,23 @@ export const links = {
   directions: `https://www.google.com/maps/dir/?api=1&destination=${q}`,
   embed: `https://www.google.com/maps?q=${q}&output=embed`,
   reviews: `https://www.google.com/maps/search/?api=1&query=${q}`,
+}
+
+// India: 112 is the national all-in-one emergency number; 108 is Gujarat's free ambulance service.
+export const emergency = { national: '112', ambulance: '108' }
+
+// How booking works. Fill any of these in; the form picks the best available route:
+//  formEndpoint  a Formspree (or compatible) URL: requests arrive in the clinic's email inbox
+//  scheduleUrl   a Google Calendar appointment schedule / Cal.com link: shows live free slots
+//  (clinic.whatsapp) opens WhatsApp with the request pre-written
+export const booking = {
+  formEndpoint: import.meta.env.VITE_BOOKING_ENDPOINT || '',
+  scheduleUrl: import.meta.env.VITE_SCHEDULE_URL || '',
+  types: [
+    { key: 'new', label: 'First consultation', note: 'Longer visit, about an hour', mode: 'both' },
+    { key: 'follow', label: 'Follow-up', note: 'Review of your remedy', mode: 'both' },
+    { key: 'counsel', label: 'Counselling & therapy', note: 'A session to talk things through', mode: 'both' },
+  ],
 }
 
 // Minutes after midnight, clinic local time. Index 0 = Sunday (matches Date#getDay).
@@ -64,6 +83,27 @@ export const conditions = [
   'Recurring colds',
   'Thyroid support',
   'Anxiety',
+]
+
+export const services = [
+  {
+    n: '01',
+    title: 'Classical homeopathy',
+    body: 'A full-case consultation, one carefully chosen remedy and steady follow-ups, for acute and long-standing complaints in adults and children.',
+    points: ['Individual remedy', 'Minimum dose', 'Gentle on children'],
+  },
+  {
+    n: '02',
+    title: 'Counselling & therapy',
+    body: 'An unhurried, private space to talk through stress, anxiety, low mood or anything weighing on you, offered alongside homeopathic care or on its own.',
+    points: ['Confidential', 'In clinic or online', 'Alongside your treatment'],
+  },
+  {
+    n: '03',
+    title: 'Online consultation',
+    body: 'Consult from anywhere, any day, 9 am to 1 pm. Ideal for follow-ups, or if you live outside Vadodara.',
+    points: ['Daily 9 am – 1 pm', 'Video or call', 'Reports shared by message'],
+  },
 ]
 
 export const principles = [
@@ -147,8 +187,8 @@ export const care = [
     tone: 'deep',
   },
   {
-    title: 'Mind & sleep',
-    detail: 'Stress, anxiety, low mood, insomnia',
+    title: 'Mind, sleep & counselling',
+    detail: 'Stress, anxiety, low mood, insomnia, with counselling and therapy if you want it',
     tone: 'sky',
   },
   {
@@ -196,6 +236,11 @@ export const faqs = [
       'Many families bring children to the clinic. During pregnancy or breastfeeding, mention it at the start so the treatment plan accounts for it.',
   },
   {
+    q: 'Do you offer counselling and therapy?',
+    a:
+      'Yes. Dr. Anamika offers counselling and therapy sessions, in the clinic or online, alongside homeopathic treatment or separately. Everything you share stays confidential. If you are in crisis or at risk of harming yourself, call 112 or 108 right away.',
+  },
+  {
     q: 'Do you offer online consultations?',
     a:
       'Yes. Online consultations run from 9 am to 1 pm. Message or call the clinic to book a slot.',
@@ -203,7 +248,7 @@ export const faqs = [
   {
     q: 'What about emergencies?',
     a:
-      'Homeopathy is not for emergencies. For chest pain, breathlessness, heavy bleeding, high fever in an infant, an injury or anything that feels urgent, call 108 or go to the nearest hospital.',
+      'Homeopathy is not for emergencies. For chest pain, breathlessness, heavy bleeding, high fever in an infant, an injury, a mental-health crisis or anything that feels urgent, call 112 (India’s national emergency number) or 108 (free ambulance in Gujarat), or go to the nearest hospital.',
   },
 ]
 

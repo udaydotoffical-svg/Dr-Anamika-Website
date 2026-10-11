@@ -1,5 +1,6 @@
 // Procedural models: everything is built from code, so there are no model files to download.
 import * as THREE from 'three'
+import { MARK } from '../lib/logo.js'
 
 // Smooth a polyline profile (x = radius, y = height) with a Catmull-Rom curve,
 // keeping hard corners where `sharp` is set on a point.
@@ -124,12 +125,43 @@ export function labelTexture(fontFamily) {
   ctx.fillStyle = '#fffaf0'
   ctx.fillRect(0, 0, W, H)
   ctx.fillStyle = '#086288'
-  ctx.fillRect(0, 70, W, 170)
+  ctx.fillRect(0, 36, W, 232)
+  // the clinic mark, drawn from the same paths as the website logo
+  ctx.save()
+  ctx.translate(W / 2 - 46, 46)
+  ctx.scale(1.44, 1.44)
+  ctx.fillStyle = '#ffefc4'
+  ctx.strokeStyle = '#ffefc4'
+  ctx.lineCap = 'round'
+  const wings = new Path2D(MARK.wings)
+  ctx.fill(wings)
+  ctx.save()
+  ctx.translate(64, 0)
+  ctx.scale(-1, 1)
+  ctx.fill(wings)
+  ctx.restore()
+  ctx.lineWidth = 2
+  ctx.stroke(new Path2D(MARK.staff))
+  ctx.lineWidth = 2.6
+  ctx.stroke(new Path2D(MARK.tube))
+  ctx.stroke(new Path2D(MARK.stem))
+  ctx.beginPath()
+  ctx.arc(MARK.finial.cx, MARK.finial.cy, MARK.finial.r, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = '#97d7ff'
+  for (const [cx, cy] of [...MARK.ears, [MARK.chest.cx, MARK.chest.cy]]) {
+    ctx.beginPath()
+    ctx.arc(cx, cy, cx === MARK.chest.cx ? MARK.chest.r : 2.5, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.lineWidth = 1.6
+    ctx.stroke()
+  }
+  ctx.restore()
   ctx.textAlign = 'center'
   ctx.fillStyle = '#ffefc4'
-  ctx.font = `600 104px ${fontFamily}`
-  ls('16px')
-  ctx.fillText('AVIGHNA', W / 2 + 8, 192)
+  ctx.font = `600 92px ${fontFamily}`
+  ls('14px')
+  ctx.fillText('AVIGHNA', W / 2 + 7, 250)
   ctx.fillStyle = '#086288'
   ctx.font = `600 34px ${fontFamily}`
   ls('9px')

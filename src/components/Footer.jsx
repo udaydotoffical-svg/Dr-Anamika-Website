@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useScroll, useTransform } from 'motion/react'
-import { clinic, hours, links, onlineHours } from '../content.js'
+import { clinic, emergency, hours, links, onlineHours } from '../content.js'
 import { fmtRange } from '../lib/time.js'
 import { Icon, Logo, contactHref } from './ui.jsx'
 import { StatusPill } from './Nav.jsx'
@@ -11,7 +11,7 @@ export default function Footer() {
   const y = useTransform(scrollYProgress, [0, 1], ['30%', '0%'])
 
   return (
-    <footer className="footer" ref={ref}>
+    <footer className="footer" id="footer" ref={ref}>
       <div className="wrap">
         <div className="footer-top">
           <div className="footer-cta">
@@ -71,14 +71,19 @@ export default function Footer() {
             </div>
           </div>
         </div>
+        <div className="emergency">
+          <span className="em-label"><Icon name="plus" size={16} /> In an emergency</span>
+          <a href={`tel:${emergency.national}`}><b>{emergency.national}</b> National emergency</a>
+          <a href={`tel:${emergency.ambulance}`}><b>{emergency.ambulance}</b> Ambulance (Gujarat)</a>
+        </div>
         <p className="disclaimer">
-          Information on this website is general and is not a substitute for a consultation. Homeopathy
-          is not for emergencies: for urgent symptoms call <a href="tel:108">108</a> or go to the nearest
-          hospital. Do not stop prescribed medicines without speaking to the doctor who prescribed them.
+          {clinic.doctorFull}, {clinic.qualifications} · Reg. No. {clinic.regNo}. Information on this
+          website is general and is not a substitute for a consultation. Homeopathy is not for
+          emergencies. Do not stop prescribed medicines without speaking to the doctor who prescribed them.
         </p>
       </div>
       <motion.div className="wordmark" style={{ y }} aria-hidden="true">
-        <Logo />
+        <Logo className="wm-logo" />
         Avighna
       </motion.div>
       <div className="wrap footer-base">
