@@ -3,6 +3,7 @@ import { getStore } from '../_lib/store.js'
 import { clientIp, deskEnabled, fail, json, limited, query, readBody, sha } from '../_lib/http.js'
 import { availability, cancelByRef, createBooking, getSettings, icsFor, publicView, slotsFor } from '../_lib/engine.js'
 import { notifyDoctor } from '../_lib/push.js'
+import { turnstileOn, verifyTurnstile } from '../_lib/turnstile.js'
 import { TYPES, fmtDate, fmtTime, isDate } from '../../shared/schedule.js'
 
 export default async function handler(req, res) {
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
     if (action === 'config') {
       if (!deskEnabled()) return json(res, 200, { enabled: false })
       const s = await getSettings(store)
-      return json(res, 200, { enabled: true, horizonDays: s.horizonDays, autoConfirm: s.autoConfirm, types: TYPES.map((t) => ({ ...t, dur: s.durations[t.key] })) })
+      return json(res, 200, { enabled: true, turnstile: turnstileOn() ? process.env.TURNSTILE_SITE_KEY : null, horizonDays: s.horizonDays, autoConfirm: s.autoConfirm, types: TYPES.map((t) => ({ ...t, dur: s.durations[t.key] })) })
     }
     if (!deskEnabled()) return fail(res, 503, 'not_configured', 'Online booking is not switched on yet.')
 
@@ -32,6 +33,10 @@ export default async function handler(req, res) {
       const body = await readBody(req)
       if (body.trap) return json(res, 200, { ok: true, ref: 'x', status: 'pending' }) // bots get a fake success
       if (await limited(`book:${sha(clientIp(req))}`, 6, 3600)) return fail(res, 429, 'slow_down', 'Too many requests from this device. Please try again later or call the clinic.')
+      if (turnstileOn()) {
+        const t = await verifyTurnstile(body.cfToken, clientIp(req))
+        if (!t.ok) return fail(res, 400, t.code, t.code === 'bot_unreachable' ? 'We could not run the quick safety check. Please try again in a moment, or call the clinic.' : 'Please complete the quick check and try again.')
+      }
       const r = await createBooking(store, { ...body, start: Number(body.start) }, { source: 'web' })
       if (!r.ok) return fail(res, r.status, r.code, r.message)
       const b = r.booking

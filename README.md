@@ -53,7 +53,8 @@ api/_lib/              storage (Upstash Redis or a local file), booking engine w
 src/desk/              the Desk app
 src/components/SlotBooking.jsx, MyBooking.jsx   the website side
 dev-server.mjs         local stand-in for the API (npm run api)
-test/                  backend, Desk and website tests
+api/_lib/turnstile.js  Cloudflare bot check (opt-in)
+test/                  backend, Desk, website and bot-check tests
 ```
 
 ## Fill these in before going live

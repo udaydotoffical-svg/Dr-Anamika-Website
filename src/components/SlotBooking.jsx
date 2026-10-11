@@ -6,6 +6,31 @@ import { clinic, emergency } from '../content.js'
 import { TYPES, addDays, fmtDate, fmtTime, nowParts } from '../../shared/schedule.js'
 import { Icon } from './ui.jsx'
 
+// Cloudflare's "are you a robot?" box. Invisible for almost everyone (interaction-only).
+let tsLoad
+const loadTurnstile = () => (tsLoad ||= new Promise((resolve, reject) => {
+  if (window.turnstile) return resolve(window.turnstile)
+  const s = document.createElement('script')
+  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+  s.async = true
+  s.onload = () => resolve(window.turnstile)
+  s.onerror = () => { tsLoad = null; reject(new Error('turnstile')) }
+  document.head.appendChild(s)
+}))
+
+function BotCheck({ siteKey, onToken, onBroken }) {
+  const box = useRef()
+  useEffect(() => {
+    let id, dead = false
+    loadTurnstile().then((ts) => {
+      if (dead || !box.current) return
+      id = ts.render(box.current, { sitekey: siteKey, appearance: 'interaction-only', callback: onToken, 'expired-callback': () => onToken(''), 'error-callback': () => onToken('') })
+    }).catch(() => onBroken())
+    return () => { dead = true; try { if (id !== undefined) window.turnstile?.remove(id) } catch { /* already gone */ } }
+  }, [siteKey, onToken, onBroken])
+  return <div ref={box} className="botcheck" data-testid="botcheck" />
+}
+
 const j = async (url, opts) => {
   const res = await fetch(url, opts)
   const data = await res.json().catch(() => ({}))
@@ -29,7 +54,11 @@ export default function SlotBooking({ cfg }) {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [done, setDone] = useState(null)
+  const [cf, setCf] = useState('')
+  const [broken, setBroken] = useState(false) // the check could not load (ad-blocker, offline)
+  const [chk, setChk] = useState(0) // bump to get a fresh check (each one works only once)
   const chosenRef = useRef()
+  const onBroken = useCallback(() => setBroken(true), [])
   const dur = cfg.types.find((t) => t.key === type)?.dur ?? 60
 
   const loadDays = useCallback(async () => {
@@ -58,14 +87,16 @@ export default function SlotBooking({ cfg }) {
     if (!/^[6-9]\d{9}$/.test(f.phone.replace(/[^\d]/g, '').replace(/^(91|0)(?=\d{10}$)/, ''))) er.phone = 'Enter a 10-digit mobile number so the clinic can reach you.'
     setErrors(er)
     if (Object.keys(er).length) return document.querySelector('.book [aria-invalid="true"]')?.focus()
+    if (cfg.turnstile && !cf) return setMsg(broken ? 'The safety check could not load. Please turn off any ad-blocker and reload, or call the clinic to book.' : 'One moment: we are doing a quick safety check. Please press the button again in a few seconds.')
     setBusy(true); setMsg('')
     try {
-      const r = await j('/api/public/book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...f, type, mode, date, start, trap }) })
+      const r = await j('/api/public/book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...f, type, mode, date, start, trap, cfToken: cf }) })
       setDone(r)
     } catch (x) {
       setMsg(x.message)
       if (x.code === 'slot_taken') { loadSlots(); loadDays() }
     }
+    if (cfg.turnstile) { setCf(''); setChk((n) => n + 1) }
     setBusy(false)
   }
 
@@ -148,6 +179,7 @@ export default function SlotBooking({ cfg }) {
         </label>
         <label className="trap" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} /></label>
       </div>
+      {cfg.turnstile && <BotCheck key={chk} siteKey={cfg.turnstile} onToken={setCf} onBroken={onBroken} />}
 
       <button className="btn btn-dark btn-lg btn-block" type="submit" disabled={busy}>{busy ? 'Booking…' : cfg.autoConfirm ? 'Book this time' : 'Request this time'} <Icon name="arrow" /></button>
       <AnimatePresence>{msg && <motion.p className="err" role="alert" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>{msg}</motion.p>}</AnimatePresence>
