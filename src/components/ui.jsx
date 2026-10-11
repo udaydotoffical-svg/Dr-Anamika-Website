@@ -56,15 +56,7 @@ export function SplitWords({ text, as = 'h2', className, delay = 0, immediate = 
   )
 }
 
-export function Logo({ className = '' }) {
-  return (
-    <svg className={`logo-mark ${className}`} viewBox="0 0 40 40" aria-hidden="true">
-      <path d="M8 32C8 18 18 8 32 8C32 22 22 32 8 32Z" fill="currentColor" />
-      <path d="M8 32L24.5 15.5" stroke="var(--bg)" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="21.2" cy="19" r="3" fill="var(--sky)" />
-    </svg>
-  )
-}
+export { default as Logo } from './Logo.jsx'
 
 export function Stars({ value = 5, size = 16 }) {
   return (
@@ -91,6 +83,7 @@ const paths = {
   star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
   menu: 'M4 8h16M4 16h16',
   close: 'M6 6l12 12M18 6L6 18',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
   external: 'M14 5h5v5M19 5l-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4',
 }
 

@@ -4,6 +4,9 @@ import Loader from './components/Loader.jsx'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import Principles from './components/Principles.jsx'
+import Services from './components/Services.jsx'
+import Trust from './components/Trust.jsx'
+import { Cursor, ProgressBar } from './components/Fx.jsx'
 import Story from './components/Story.jsx'
 import Care, { Marquee } from './components/Care.jsx'
 import Doctor from './components/Doctor.jsx'
@@ -80,11 +83,15 @@ export default function App() {
       <a className="skip" href="#approach">
         Skip to content
       </a>
+      <ProgressBar />
+      <Cursor />
       <Nav />
       <main>
         <Hero onSceneReady={onReady} />
         <Marquee />
+        <Trust />
         <Principles />
+        <Services />
         <Story />
         <Care />
         <Doctor />
