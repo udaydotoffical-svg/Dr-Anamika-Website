@@ -27,6 +27,7 @@ Project → **Settings → Environment Variables**, add these, then **Redeploy**
 | `DESK_ORIGIN` | Recommended. The address the app is used at, e.g. `https://avighna-clinic.in`. Face ID is tied to one web address, so pin it once you have the final one. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | For "new booking" alerts. Make them by running `npx web-push generate-vapid-keys` on any computer. Optional. |
 | `VAPID_SUBJECT` | `mailto:` plus the clinic's email, e.g. `mailto:clinic@example.com`. Needed with the keys above. |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Strongly recommended. Cloudflare's free bot check on the booking form (see below). Set both or neither. |
 | `CLINIC_ADDRESS` | Optional. Address printed in patients' calendar files. |
 | `VITE_CLINIC_PHONE` | Optional. Clinic number as `919876543210`. Turns on Call buttons. |
 
@@ -39,6 +40,18 @@ Order matters: an app saved to the Home Screen keeps its own sign-in, separate f
    is only a backup.
 5. **Settings → Turn on alerts** (needs iOS 16.4 or newer, and only works from the Home Screen app).
    Without alerts the app still works; it refreshes by itself every 30 seconds while open.
+
+## Stop fake bookings (Cloudflare Turnstile, free, 5 minutes)
+Without this, a bot could fill the calendar with fake requests. Turnstile is Cloudflare's invisible
+"are you a robot?" check. Real patients almost never see it.
+1. Make a free account at <https://dash.cloudflare.com> (turn on two-step login). Open **Turnstile → Add widget**.
+2. Name it `Avighna booking`, add the clinic's web address (and the `.vercel.app` one if you use it), choose
+   **Managed**, and create it.
+3. Copy the **Site Key** into `TURNSTILE_SITE_KEY` and the **Secret Key** into `TURNSTILE_SECRET_KEY` in
+   Vercel, then redeploy.
+Once both are set, a booking without a valid check is refused, even if Cloudflare is down (it never lets
+unchecked bookings through). If a patient's ad-blocker stops the check loading, the form tells them to
+turn it off or phone the clinic. Leave both empty and the site works as before, just without the check.
 
 ## How "is this really her?" is handled
 - Nothing on `/desk` shows until she signs in. Anyone else sees only the sign-in box.
@@ -70,4 +83,4 @@ npm run api        # terminal 1: local booking service (stores data in .data/dev
 npm run dev        # terminal 2: the site at http://localhost:5173 (Desk at /desk/)
 # dev passphrase: "dev passphrase 123"
 ```
-Tests: `npm run test:api` (booking rules, races, sign-in) and `npm run build && npm run test:desk`.
+Tests: `npm run test:api` (booking rules, races, sign-in), `npm run test:turnstile`, and after `npm run build`: `npm run test:desk`, `npm run test:site`, `npm run test:bot`.
