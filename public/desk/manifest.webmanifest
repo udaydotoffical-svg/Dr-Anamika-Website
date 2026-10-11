@@ -1,0 +1,15 @@
+{
+  "name": "Avighna Desk",
+  "short_name": "Avighna Desk",
+  "description": "Appointments for Dr. Anamika Singh",
+  "start_url": "/desk",
+  "scope": "/desk",
+  "display": "standalone",
+  "background_color": "#fff5dc",
+  "theme_color": "#086288",
+  "icons": [
+    { "src": "/desk/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/desk/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/desk/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

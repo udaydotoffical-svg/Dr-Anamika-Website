@@ -6,18 +6,24 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:api": "node --test test/api.test.mjs",
+    "api": "DESK_ORIGIN=\"${DESK_ORIGIN:-http://localhost:4173}\" DESK_PASSPHRASE=\"${DESK_PASSPHRASE:-dev passphrase 123}\" DESK_DEV_STORE=.data/dev.json node dev-server.mjs",
+    "test:desk": "node test/desk.e2e.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.0.3",
     "lenis": "^1.3.26",
     "motion": "^14.1.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.2",
